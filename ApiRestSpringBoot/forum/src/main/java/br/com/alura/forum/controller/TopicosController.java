@@ -7,6 +7,9 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,16 +32,27 @@ public class TopicosController {
     @Autowired
     private CursoRepository cursoRepository;
 
+    /**
+     * GET /topicos?pagina=1&quantidade=1
+     * 
+     * @param nomeCurso (optional)
+     * @param pagina
+     * @param quantidade
+     * @return TopicoDTO
+     */
     @GetMapping
-    public List<TopicoDto> lista(String nomeCurso){
+    public Page<TopicoDto> lista(@RequestParam(required = false) String nomeCurso,
+        @RequestParam Integer pagina,@RequestParam Integer quantidade){
 
+        Pageable paginação = PageRequest.of(pagina, quantidade);    
+        Page<Topico> topicos;
+ 
         if(nomeCurso == null){
-            List<Topico> topicos = topicoRepository.findAll();   
-            return TopicoDto.converter(topicos);
+            topicos = topicoRepository.findAll(paginação);   
         }else {
-            List<Topico> topicos = topicoRepository.findByCurso_Nome(nomeCurso);   
-            return TopicoDto.converter(topicos);
+            topicos = topicoRepository.findByCurso_Nome(nomeCurso, paginação);   
         }
+        return TopicoDto.converter(topicos);
     }
 
     @PostMapping
